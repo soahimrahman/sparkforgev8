@@ -145,6 +145,12 @@
     'sospark.pro.bd',
     'www.sospark.pro.bd',
     'soahimrahman.github.io',
+'sparkforge.pro.bd',
+'www.sparkforge.pro.bd',
+'soahimrahman.github.io/sparkforgeV8.1',
+'www.soahimrahman.github.io/sparkforgeV8.1',
+'www.soahimrahman.github.io/sparkforgeV8',
+'soahimrahman.github.io/sparkforgeV8',
   ];
   var _host = (window.location.hostname || '').toLowerCase();
   var _ok   = _allowed.some(function (d) {
