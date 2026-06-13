@@ -54,7 +54,6 @@
     }
   }
 
-  // Check every 2000ms instead of 500ms — much lighter on performance
   function _checkDevTools() {
     if (_sizeCheck()) {
       _showOverlay();
@@ -80,19 +79,15 @@
     var ctrl = e.ctrlKey || e.metaKey;
     var shift = e.shiftKey;
 
-    // Block ALL F-keys
     if (/^F\d{1,2}$/.test(key)) {
       e.preventDefault(); e.stopImmediatePropagation(); return false;
     }
-    // Ctrl+Shift+I/J/C/K/E
     if (ctrl && shift && 'ijckeIJCKE'.includes(key)) {
       e.preventDefault(); e.stopImmediatePropagation(); return false;
     }
-    // Ctrl+U / Ctrl+S / Ctrl+P
     if (ctrl && 'uUsSpP'.includes(key)) {
       e.preventDefault(); e.stopImmediatePropagation(); return false;
     }
-    // Ctrl+A (outside inputs)
     var tag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
     if (ctrl && (key === 'a' || key === 'A') && tag !== 'input' && tag !== 'textarea') {
       e.preventDefault(); e.stopImmediatePropagation(); return false;
@@ -139,18 +134,16 @@
 
 
   /* ── 10. DOMAIN LOCK ────────────────────────────────────────────────── */
+  // NOTE: Only add hostnames here — NO paths, NO slashes, NO subfolders
+  // e.g. 'soahimrahman.github.io' covers ALL paths under that domain
   var _allowed = [
     'localhost',
     '127.0.0.1',
     'sospark.pro.bd',
     'www.sospark.pro.bd',
-    'soahimrahman.github.io',
-'sparkforge.pro.bd',
-'www.sparkforge.pro.bd',
-'soahimrahman.github.io/sparkforgeV8.1',
-'www.soahimrahman.github.io/sparkforgeV8.1',
-'www.soahimrahman.github.io/sparkforgeV8',
-'soahimrahman.github.io/sparkforgeV8',
+    'sparkforge.pro.bd',
+    'www.sparkforge.pro.bd',
+    'soahimrahman.github.io',   // covers /sparkforgev8, /sparkforgev8.1, ALL subfolders
   ];
   var _host = (window.location.hostname || '').toLowerCase();
   var _ok   = _allowed.some(function (d) {
