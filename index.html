@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="author" content="SoSpark Design">
+<meta name="copyright" content="© 2025 SoSpark Design. All rights reserved.">
+<meta name="robots" content="noindex, nofollow">
+<script src="security.js"></script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SparkForge — CRM Lead Extractor by SoSpark Design</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800;900&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- Cursor -->
+<div class="cursor-glow" id="cursorGlow"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- Ember Particles -->
+<canvas id="emberCanvas"></canvas>
+
+<!-- Laser + Scanlines -->
+<div class="laser-line"></div>
+<div class="scanlines"></div>
+
+<div class="page">
+
+  <!-- HEADER -->
+<header id="site-header"></header>
+
+  <!-- HERO -->
+  <div class="hero">
+    <h1>Paste data.<br><em>Get CRM leads.</em></h1>
+    <p>Drop raw data or upload a large file. SparkForge extracts every valid lead and formats it into a CRM-ready table.</p>
+  </div>
+
+  <!-- WORKSPACE SWITCH -->
+  <section class="workspace-switch" aria-label="Choose tool">
+    <button class="workspace-tab active" id="leadWorkspaceTab" type="button">
+      <span class="workspace-kicker">01</span>
+      <strong>Make leads</strong>
+      <small>Groq extraction + CSV output</small>
+    </button>
+    <button class="workspace-tab" id="verifyWorkspaceTab" type="button">
+      <span class="workspace-kicker">02</span>
+      <strong>Email verification</strong>
+      <small>Backend DNS/MX/SMTP checks</small>
+    </button>
+  </section>
+
+  <main id="leadWorkspace" class="workspace-panel active">
+
+  <!-- API SECTION -->
+  <div class="api-section">
+    <div class="api-row">
+      <label>GROQ API KEY</label>
+      <input type="password" class="api-key-input" id="apiKey" placeholder="gsk_..." autocomplete="off" />
+      <a class="api-link" href="https://console.groq.com/keys" target="_blank">Get free key →</a>
+      <button class="bulk-toggle" id="bulkToggle">⚡ Bulk load keys</button>
+    </div>
+    <div class="bulk-key-panel" id="bulkPanel">
+      <div class="bulk-drop" id="bulkDrop">
+        <input type="file" id="bulkFile" accept=".txt,.csv" />
+        <div class="bulk-drop-text">Drop a <strong>.txt</strong> file — one API key per line · supports <strong>1000+ keys</strong></div>
+        <div class="bulk-drop-text bulk-key-note">// keys auto-rotate on rate limits for nonstop extraction</div>
+      </div>
+      <div class="bulk-status" id="bulkStatus">
+        <span class="bulk-status-pill" id="keyCountPill">✦ 0 keys loaded</span>
+        <span class="key-active-pill" id="keyActivePill">Using key #1</span>
+        <button class="bulk-toggle bulk-clear-btn" id="clearBulkKeysBtn">✕ Clear keys</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODE TABS -->
+  <div class="mode-tabs">
+    <button class="mode-tab active" id="tabPaste">⚡ Quick paste</button>
+    <button class="mode-tab" id="tabAgent">🤖 Agent mode <span class="tab-badge">large files</span></button>
+  </div>
+
+  <!-- MAIN CARD -->
+  <div class="main-card main-card-enter">
+    <div class="card-header">
+      <div class="dot"></div>
+      <h2 id="cardTitle">Raw lead data</h2>
+    </div>
+    <div class="card-body">
+
+      <!-- PASTE MODE -->
+      <div id="pasteMode">
+        <textarea id="rawData" placeholder="Paste anything here — examples:
+
+Name: Sarah Lee | Brand: Glow Studio | Email: sarah@glowstudio.com | @glowstudio | Country: US
+john@brandco.in, BrandCo, John Doe, Founder, IN, +91 98765 43210
+Brand: Luxe Salon | Owner: Mia Khan | mia@luxesalon.ae | Dubai | @luxesalon_ae
+
+...paste as many rows as you want, any format"></textarea>
+        <div class="textarea-hint">// supports CSV, pipe-separated, plain text, mixed formats</div>
+      </div>
+
+      <!-- AGENT MODE -->
+      <div id="agentMode">
+        <div class="file-drop" id="fileDrop">
+          <input type="file" id="fileInput" accept=".txt,.csv,.xlsx,.xls,.tsv" />
+          <div class="file-drop-icon">📂</div>
+          <h3 id="dropTitle">Drop your file here</h3>
+          <p id="dropSub">or click to browse</p>
+          <div class="file-supported">// .txt · .csv · .tsv · .xlsx · .xls</div>
+        </div>
+        <div class="file-info" id="fileInfo">
+          <div>
+            <div class="file-info-name" id="fileName"></div>
+            <div class="file-info-size" id="fileSize"></div>
+          </div>
+          <button class="file-remove" id="removeFileBtn">✕</button>
+        </div>
+        <div class="agent-info-box">
+          <strong>Agent mode</strong> processes your entire file in batches automatically.<br>
+          Large files (1000+ rows) may take <strong>10–20 minutes</strong>. Load bulk keys above to speed things up. Keep this tab open.
+        </div>
+      </div>
+
+    </div>
+
+    <div class="error-box" id="errorBox"></div>
+
+    <div class="card-body card-body-actions">
+      <div class="actions">
+        <button class="btn btn-primary" id="extractBtn">
+          <span id="btnIcon">✦</span>
+          <span id="btnText">Extract leads</span>
+        </button>
+        <button class="btn btn-server" id="verifyEmailsBtn" type="button">◆ Verify emails with SMTP</button>
+        <label class="smtp-inline-toggle" title="SMTP checks can be slower and may fail when port 25 is blocked.">
+          <input type="checkbox" id="smtpEnabledToggle" checked />
+          <span>SMTP probe</span>
+        </label>
+        <button class="btn btn-pause" id="pauseBtn">⏸ Pause</button>
+        <button class="btn btn-ghost" id="clearAllBtn">Clear</button>
+        <button class="btn btn-export" id="exportBtn">↓ Export CSV</button>
+      </div>
+    </div>
+
+    <div class="verify-panel" id="verifyPanel" aria-live="polite">
+      <div class="verify-meter">
+        <span class="verify-meter-label" id="verifyMeterLabel">Server verifier ready</span>
+        <span class="verify-meter-pct" id="verifyMeterPct">0%</span>
+      </div>
+      <div class="verify-track"><div class="verify-fill" id="verifyFill"></div></div>
+      <div class="verify-summary" id="verifySummary">Extract leads first, then run DNS/MX/risk checks from your Node server.</div>
+    </div>
+
+    <div class="progress-section" id="progressSection">
+      <div class="progress-top">
+        <span class="progress-status" id="progressStatus">Starting...</span>
+        <span class="progress-pct" id="progressPct">0%</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-sub" id="progressSub"></div>
+      <div class="agent-log" id="agentLog"></div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="resultsArea">
+    <div class="stats-grid" id="statsGrid"></div>
+    <div class="table-section">
+      <div class="table-header">
+        <h3 id="tableTitle">Leads</h3>
+        <div class="table-header-actions">
+          <button class="btn btn-export" id="tableExportBtn">↓ Export CSV</button>
+          <button class="btn btn-export split-export" id="exportGoodLeadsBtn" type="button">↓ Good CSV</button>
+          <button class="btn btn-ghost split-export" id="exportBadLeadsBtn" type="button">↓ Bad CSV</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th><th>Name</th><th>Brand</th><th>Email</th><th>Country</th>
+              <th>Status</th><th>Data Status</th><th>Email Score</th><th>Risk</th><th>MX</th><th>Provider</th>
+              <th>Senders</th><th>Sender Used</th><th>Sent Time</th>
+              <th>Decision Maker</th><th>Role</th><th>Phone</th><th>Username / Profile</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="empty" id="emptyState">
+    <svg width="44" height="44" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+    <p>Your extracted leads will appear here</p>
+  </div>
+
+  </main><!-- #leadWorkspace -->
+
+  <!-- EMAIL VERIFICATION WORKSPACE -->
+  <main id="verifyWorkspace" class="workspace-panel">
+    <section class="verifier-hero-card">
+      <div>
+        <span class="verifier-eyebrow">Backend only · no Groq needed</span>
+        <h2>Email verification lab</h2>
+        <p>Paste one email, paste thousands, or upload a file. The server extracts every email locally, verifies DNS/MX/risk data, and exports clean CSV files.</p>
+      </div>
+      <div class="verifier-sigil">MX</div>
+    </section>
+
+    <div class="mode-tabs verifier-tabs">
+      <button class="mode-tab active" id="verifyPasteTab" type="button">⚡ Quick paste</button>
+      <button class="mode-tab" id="verifyAgentTab" type="button">🤖 Agent mode <span class="tab-badge">files</span></button>
+    </div>
+
+    <section class="main-card verifier-card">
+      <div class="card-header">
+        <div class="dot"></div>
+        <h2 id="verifyCardTitle">Emails to verify</h2>
+      </div>
+
+      <div class="card-body">
+        <div id="verifyPasteMode">
+          <textarea id="verifyRawData" placeholder="Paste one email or many emails here — any format works:
+
+hello@brand.com
+Founder: Sarah · sarah@glowstudio.com · Instagram @glowstudio
+info@example.com, Brand name, +1 555 0000"></textarea>
+          <div class="textarea-hint">// backend mode extracts emails with regex, not Groq</div>
+        </div>
+
+        <div id="verifyAgentMode">
+          <div class="file-drop" id="verifyFileDrop">
+            <input type="file" id="verifyFileInput" accept=".txt,.csv,.xlsx,.xls,.tsv,.json,.html,.md" />
+            <div class="file-drop-icon">🧪</div>
+            <h3 id="verifyDropTitle">Drop an email list file</h3>
+            <p id="verifyDropSub">or click to browse</p>
+            <div class="file-supported">// .txt · .csv · .tsv · .xlsx · .xls · .json · .html · .md</div>
+          </div>
+          <div class="file-info" id="verifyFileInfo">
+            <div>
+              <div class="file-info-name" id="verifyFileName"></div>
+              <div class="file-info-size" id="verifyFileSize"></div>
+            </div>
+            <button class="file-remove" id="verifyRemoveFileBtn" type="button">✕</button>
+          </div>
+          <div class="agent-info-box">
+            <strong>Email agent mode</strong> reads the file in the browser, extracts every email, then sends the list to your Node backend for verification. No Groq API is used here.
+          </div>
+        </div>
+      </div>
+
+      <div class="error-box" id="verifyErrorBox"></div>
+
+      <div class="card-body card-body-actions">
+        <div class="actions">
+          <button class="btn btn-primary" id="runVerifyBtn" type="button">✦ Verify emails</button>
+          <label class="smtp-inline-toggle" title="SMTP checks are slower but can catch more dead mailboxes.">
+            <input type="checkbox" id="verifySmtpToggle" />
+            <span>SMTP probe</span>
+          </label>
+          <button class="btn btn-ghost" id="clearVerifyBtn" type="button">Clear</button>
+          <button class="btn btn-export" id="exportVerifyAllBtn" type="button">↓ Export CSV</button>
+          <button class="btn btn-export" id="exportVerifyGoodBtn" type="button">↓ Good CSV</button>
+          <button class="btn btn-ghost" id="exportVerifyBadBtn" type="button">↓ Bad CSV</button>
+        </div>
+      </div>
+
+      <div class="verify-panel always-visible" id="emailVerifyPanel" aria-live="polite">
+        <div class="verify-meter">
+          <span class="verify-meter-label" id="emailVerifyLabel">Waiting for emails</span>
+          <span class="verify-meter-pct" id="emailVerifyPct">0%</span>
+        </div>
+        <div class="verify-track"><div class="verify-fill" id="emailVerifyFill"></div></div>
+        <div class="verify-summary" id="emailVerifySummary">Paste emails or upload a file, then run backend verification.</div>
+      </div>
+    </section>
+
+    <section class="table-section verifier-results" id="verifyResultsArea">
+      <div class="table-header">
+        <h3>Email verification results</h3>
+        <div class="table-header-actions">
+          <button class="btn btn-export" id="exportVerifyAllBtn2" type="button">↓ Export all</button>
+          <button class="btn btn-export" id="exportVerifyGoodBtn2" type="button">↓ Good only</button>
+          <button class="btn btn-ghost" id="exportVerifyBadBtn2" type="button">↓ Bad/dead</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th><th>Email</th><th>Canonical</th><th>Data Status</th><th>Status</th><th>Score</th><th>Address Risk</th><th>Domain Risk</th><th>MX</th><th>MX Health</th><th>Provider</th><th>SPF</th><th>DMARC</th><th>DKIM</th><th>Big Provider</th><th>Gmail Intel</th><th>SMTP Detail</th><th>Flags</th><th>Typo Suggestion</th>
+            </tr>
+          </thead>
+          <tbody id="verifyTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main><!-- #verifyWorkspace -->
+
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="footer-logo">Spark<span>Forge</span></div>
+        <p>A free CRM lead extractor tool by SoSpark Design. Built for marketers, freelancers & agencies.</p>
+      </div>
+      <div class="footer-links">
+        <h4>Find me on</h4>
+        <div class="social-links">
+          <a class="social-link" href="https://www.pinterest.com/soahimrahmantasin17/" target="_blank">
+            <span class="s-icon">📌</span>Pinterest
+          </a>
+          <a class="social-link" href="https://web.facebook.com/soahim.rahman.tasin17/" target="_blank">
+            <span class="s-icon">📘</span>Facebook
+          </a>
+          <a class="social-link" href="mailto:soahimrahman2024@gmail.com">
+            <span class="s-icon">✉️</span>soahimrahman2024@gmail.com
+          </a>
+          <a class="social-link" href="https://www.supportkori.com/soahimrahmantasin17" target="_blank">
+            <span class="s-icon">💛</span>Support Me
+          </a>
+          <a class="social-link" href="https://www.soahimrahman.pro.bd" target="_blank">
+            <span class="s-icon">🌐</span>soahimrahman.pro.bd
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2025 <a href="https://www.soahimrahman.pro.bd" target="_blank">SoSpark Design</a> · All rights reserved</p>
+      <p>WhatsApp <a href="https://wa.me/8801632952192">+880 163 295 2192</a></p>
+    </div>
+  </footer>
+
+</div><!-- .page -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="script.js"></script>
+<script src="verifyClient.js"></script>
+<script src="workspaceClient.js"></script>
+<script src="index.js"></script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+# SparkForge — robots.txt
+# © 2025 SoSpark Design (Soahim Rahman Tasin)
+# https://www.soahimrahman.pro.bd
+
+# Block all bots from source files
+User-agent: *
+Disallow: /script.js
+Disallow: /index.js
+Disallow: /security.js
+Disallow: /verifyClient.js
+Disallow: /workspaceClient.js
+Disallow: /styles.css
+Disallow: /description.css
+Disallow: /description.js
+
+# Allow bots to index the actual pages (good for SEO)
+Allow: /index.html
+Allow: /description.html
+
+# Sitemap (optional — add if you have one)
+# Sitemap: https://soahimrahmantasin17.github.io/sitemap.xml
